@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=-1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Cat.Net</title>
+  <!-- Подключение библиотеки jQuery-->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous">
+    </script>
+  <script src="https://unpkg.com/cookielib/src/cookie.min.js"></script>
+  <!--JavaScript-->
+  <script language="JavaScript">
+    //Загрузка текстур
+    image_src = "https://github.com/Diteha/CatNet/blob/main/templates/User.png?raw=true";
+
+
+    //Защита от КликДжакинг
+    if (top != window) {
+      top.location = window.location;
+    }
+
+    //Меню
+    $(document).ready(function () {
+      $("#profile").click(function () {
+        if ($("#content_profile").is(":hidden")) {
+          //Показ профиля
+          $("#content_profile").show("slow");
+          $("#room").hide("slow");
+          $("#content_message").hide("slow");
+          $("#chats").hide("slow");
+          $("#emoticn").hide("slow");
+
+          //Очистка поля под аватар
+          if ($("#image_users").val() == "" || $("#image_users").val() == image_src) {
+            $("#image_users").val("");
+          }
+        }
+        else {
+          //Заполнение поля 
+          if ($("#image_users").val() == "") {
+            $("#image_users").val(image_src);
+          }
+          $("#content_profile").hide("slow");
+          $("#room").show("slow");
+        }
+
+
+        return false;
+      });
+      //Эмоции
+      $("#emoticon").click(function () {
+        if ($("#emoticn").is(":hidden")) {
+          $("#emoticn").show("slow");
+          $("#content_message").hide("slow");
+        }
+        else {
+          $("#emoticn").hide("slow");
+          $("#content_message").show("slow");
+        }
+      });
+    });
+
+    function generate() {
+      var length = 18,
+        charset = "aAbB^cdePQ)Rf+ghCiVWX!456jklm-GH@InoDE0_123%FpqrJ&KL#stuvM(NOwxSTUyzYZ789",
+        retVal = "";
+      for (var i = 0, n = charset.length; i < length; ++i) {
+        retVal += charset.charAt(Math.floor(Math.random() * n));
+      }
+      const inputElement = document.querySelector('#id_room');
+      inputElement.value = retVal;
+      alert(`Сгенерирован новый идентификатор вашей комнаты: ${retVal}`);
+    }
+
+    function go_the_room() {
+      var id_room = $("#id_room").val();
+      var id_sender = $("#id_sender").val();
+      var image_users = $("#image_users").val();
+      setCookie('id_room', id_room);
+      setCookie('id_sender', id_sender);
+      setCookie('image_users', image_users);
+      if (id_room.length == 18 && id_sender.length <= 15) {
+        $("#content_message").show("slow");
+        $("#chats").show("slow");
+        $("#room").hide("slow");
+        chat_window.scrollTop = 9999;
+        $.get("/send_message", { "image_users": " ", "id_sender": "Админ", "id_room": id_room, "text": `${id_sender} зашел в сеть.` });
+        alert(`Важно! Храните идентификатор вашей комнаты в безопасном месте: ${id_room}`);
+      }
+    }
+
+
+    // Загрузка и отображение сообщений
+    function load_Messages() {
+      $.get(
+        "/get_messages",
+        (data) => {
+          $("#chat_window").empty();
+          var messages = data["messages"];
+          for (var i in messages) {
+            var message = messages[i];
+            var id_room = message["id_room"];
+            cooke_room = getCookie('id_room')
+            var id_sender = message["id_sender"];
+            var image_users = message["image_users"];
+            var text = message["text"];
+            var time = message["time"];
+            if (id_room == cooke_room) {
+              if ($("#id_sender").val() == getCookie('id_sender') && id_sender== $("#id_sender").val()) {
+                if (theme == "white") {
+                  var html = `<div class='div_sender1'> <b style='color:#303C6C;'> <img src=${image_users} width='35' height='35' style="margin-left:5px; margin-top:5px; border-radius: 5px 5px 5px 5px;"> <big><b style='color:#54548a;'>  ${id_sender} :</b><b style='color:#54548a;'> ${text}</b><i style='color:#6d945d;'></big>${time}</i> </div></div><p></p>`;
+                }
+                else {
+                  var html = `<div class='div_sender'> <b style='color:#303C6C;'> <img src=${image_users} width='35' height='35' style="margin-left:5px; margin-top:5px; border-radius: 5px 5px 5px 5px;"> <big><b style='color:#54548a;'>  ${id_sender} :</b><b style='color:#54548a;'> ${text}</b><i style='color:#6d945d;'></big>${time}</i> </div><p></p>`;
+                }
+              }
+              if (id_sender== "Админ") {
+                if (theme == "white") {
+                  var html = `<div class='div_user1'><b style='color:#54548a;'> ${text}</b><i style='color:#6d945d;'></big>${time}</i> </div><p></p>`;
+                }
+                else {
+                  var html = `<div class='div_user'><b style='color:#54548a;'> ${text}</b><i style='color:#6d945d;'></big>${time}</i> </div><p></p>`;
+                }
+              }
+              else {
+                if (theme == "white") {
+                  var html = `<div class='div_user1'> <b style='color:#303C6C;'> <img src=${image_users} width='35' height='35' style="margin-left:5px; margin-top:5px; border-radius: 5px 5px 5px 5px;"> <big><b style='color:#54548a;'>  ${id_sender} :</b><b style='color:#54548a;'> ${text}</b><i style='color:#6d945d;'></big>${time}</i> </div><p></p>`;
+                }
+                else {
+                  var html = `<div class='div_user'> <b style='color:#303C6C;'> <img src=${image_users} width='35' height='35' style="margin-left:5px; margin-top:5px; border-radius: 5px 5px 5px 5px;"> <big><b style='color:#54548a;'>  ${id_sender} :</b><b style='color:#54548a;'> ${text}</b><i style='color:#6d945d;'></big>${time}</i> </div><p></p>`;
+                }
+              }
+              var div = $(html);
+              $("#chat_window").append(div);
+            }
+          }
+        }
+      );
+    }
+
+    // Отправка сообщения
+    function send_Message() {
+      var image_users = $("#image_users").val();
+      var id_sender = $("#id_sender").val();
+      var id_room = $("#id_room").val();
+      var text = $("#text").val();
+      if (id_sender != "" && text !== "") {
+        let str = text;
+        let str1 = str.toLowerCase(text);
+        let name = id_sender;
+        let name1 = name.toLowerCase(id_sender);
+        let arr = ["бл", "блять", "сука", "дебил", "дурак", "еблан", "урод", "херня", "ублюдок", "хер", "хуй", "писька", "ебать", "чушка", "тупой", "сукин", "сук", "дура", "дурачок", "хуйня"];
+        if (arr.some(value => str1.includes(value)) || arr.some(value => name1.includes(value))) {
+          alert("Сообщение не может быть отправленно из-за наличия нецензурных слов в сообщении или в имени пользователя");
+        }
+        else {
+          $.get("/send_message", { "image_users": image_users, "id_sender": id_sender, "id_room": id_room, "text": text });
+          $("#text").val("");
+        }
+      }
+    }
+    function theme_white() {
+      //Светлая тема
+      setCookie('background', "white");
+      document.body.style.background = '#fff9ea';
+      theme = "white";
+      const h2 = document.getElementById("h2");
+      h2.style.color = "black";
+      const b = document.getElementById("emoticon");
+      b.style.color = "black";
+    }
+    function theme_gray() {
+      //Темная тема
+      setCookie('background', "gray");
+      document.body.style.background = '#1a1a1a';
+      theme = "gray";
+      const h2 = document.getElementById("h2");
+      h2.style.color = "white";
+      const b = document.getElementById("emoticon");
+      b.style.color = "white";
+    }
+
+    // При загрузке страницы
+    $(() => {
+      // Куки
+
+      $("#id_sender").val(getCookie('id_sender'));
+      $("#image_users").val(getCookie('image_users'));
+      cooke_room = getCookie('id_room')
+      if (cooke_room != "" && cooke_room != " ") {
+        $("#id_room").val(cooke_room);
+        $("#content_message").show("slow");
+        $("#chats").show("slow");
+        $("#room").hide("slow");
+        chat_window.scrollTop = 9999;
+      }
+      //Выбор темы
+      if (getCookie('background') == "white") {
+        //Светлая тема
+        document.body.style.background = '#fff9ea';
+        let containerElement = document.querySelector('div_sender');
+        theme = "white";
+        const h2 = document.getElementById("h2");
+        h2.style.color = "black";
+        const b = document.getElementById("emoticon");
+        b.style.color = "black";
+      }
+      else {
+        //Темная тема
+        document.body.style.background = '#1a1a1a';
+        theme = "gray";
+        const h2 = document.getElementById("h2");
+        h2.style.color = "white";
+        const b = document.getElementById("emoticon");
+        b.style.color = "white";
+      }
+
+      // При нажатии клавиш в поле текст
+      $("#text").on("keypress", (event) => {
+        // При нажатии Enter, вызвать функцию sendMessage
+        if (event.keyCode == 13) {
+          send_Message();
+        }
+      });
+
+      // Каждую секунду вызывать loadMessages, image_check-2 сек 5мс
+      setInterval(load_Messages, 1000);
+      setInterval(image_check, 2500);
+    });
+    //Проверка на наличия изображения (аватара)
+    function image_check() {
+      if ($("#image_users").val() != "" && $("#image_users").val() != " ") {
+        document.getElementById("profile").src = $("#image_users").val();
+      }
+      if (getCookie('img_cook') != "") {
+        $("image_users").val(getCookie('img_cook'));
+      }
+    }
+
+    //Эмодзи
+    function smile1() {
+      $("#text").val($("#text").val() + "(* ^ ω ^)");
+      $("#content_message").show("slow");
+      $("#emoticn").hide("slow");
+    }
+    function smile2() {
+      $("#text").val($("#text").val() + "♡(｡- ω -)");
+      $("#content_message").show("slow");
+      $("#emoticn").hide("slow");
+    }
+    function smile3() {
+      $("#text").val($("#text").val() + "(*/ω＼)");
+      $("#content_message").show("slow");
+      $("#emoticn").hide("slow");
+    }
+    function smile4() {
+      $("#text").val($("#text").val() + "(＃￣ω￣)");
+      $("#content_message").show("slow");
+      $("#emoticn").hide("slow");
+    }
+    function smile5() {
+      $("#text").val($("#text").val() + "( ` ω ´ )");
+      $("#content_message").show("slow");
+      $("#emo").hide("slow");
+    }
+    function smile6() {
+      $("#text").val($("#text").val() + "( ╥ω╥ )");
+      $("#content_message").show("slow");
+      $("#emo").hide("slow");
+    }
+  </script>
+
+  <!--Css-->
+  <style>
+    /*Тема*/
+    body {
+      background-color: #1a1a1a;
+    }
+
+    input {
+      border-radius: 5px;
+    }
+
+    h2 {
+      color: #ffffff;
+    }
+    p {
+      color: #ffffff;
+    }
+
+    #chats {
+      display: none;
+    }
+
+    #chat_window {
+      overflow: auto;
+      border: solid;
+      position: fixed;
+      top: 80px;
+      bottom: 80px;
+      left: 0;
+      right: 0;
+    }
+
+    #content_profile {
+      display: none;
+      overflow: auto;
+    }
+
+    .contentmessage {
+      display: none;
+      height: auto;
+      position: fixed;
+      bottom: 18px;
+      left: 0;
+      right: 0;
+    }
+
+    .send {
+      border-radius: 15px;
+      background: #eee;
+      color: #088;
+      text-decoration: none;
+      height: 25px;
+      width: 120px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .send:hover {
+      box-shadow: 0px -5px 0 #088 inset;
+    }
+    .generation {
+      border-radius: 15px;
+      background: #eee;
+      color: #088;
+      text-decoration: none;
+      height: 25px;
+      width: 163px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .generation:hover {
+      box-shadow: 0px -5px 0 #088 inset;
+    }
+    #profile {
+      width: 60px;
+      height: 60px;
+      overflow-wrap: break-word;
+      word-break: break-all;
+      border-radius: 30px 15px 30px 15px;
+    }
+
+    .emoticn {
+      height: 60px;
+      display: none;
+      overflow: auto;
+      overflow-wrap: break-word;
+      word-break: break-all;
+      position: fixed;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      /**
+      * Для эксплорера
+      */
+      -ms-user-select: none;
+      /**
+      * Для мозилы
+      */
+      -moz-user-select: none;
+      /**
+      * Для конкверора
+      */
+      -khtml-user-select: none;
+      /**
+      * Для Сафари и Хрома
+      */
+      -webkit-user-select: none;
+    }
+
+    .div_sender {
+      overflow-wrap: break-word;
+      width: fit-content;
+      background-color: #D1C0DE;
+      border-radius: 5px 5px 5px 5px;
+      width: 340px;
+      white-space: pre-wrap;
+    }
+
+    .div_user {
+      overflow-wrap: break-word;
+      width: fit-content;
+      background-color: #e8dfee;
+      border-radius: 5px 5px 5px 5px;
+      width: 340px;
+      white-space: pre-wrap;
+    }
+
+    .div_sender1 {
+      overflow-wrap: break-word;
+      width: fit-content;
+      background-color: #a2cb90;
+      border-radius: 5px 5px 5px 5px;
+      width: 340px;
+      white-space: pre-wrap;
+    }
+
+    .div_user1 {
+      overflow-wrap: break-word;
+      width: fit-content;
+      background-color: #cce8c0;
+      border-radius: 5px 5px 5px 5px;
+      width: 340px;
+      white-space: pre-wrap;
+    }
+
+    .img {
+      width: 30px;
+      height: 30px;
+      overflow-wrap: break-word;
+      word-break: break-all;
+      border-radius: 30px 30px 30px 30px;
+    }
+
+    .smile {
+      width: 80px;
+      height: 28px;
+
+    }
+
+    .emoticon {
+      /**
+      * Для эксплорера
+      */
+      -ms-user-select: none;
+      /**
+      * Для мозилы
+      */
+      -moz-user-select: none;
+      /**
+      * Для конкверора
+      */
+      -khtml-user-select: none;
+      /**
+      * Для Сафари и Хрома
+      */
+      -webkit-user-select: none;
+    }
+
+    .go_the_room {
+      border-radius: 15px;
+      background: #eee;
+      color: #088;
+      text-decoration: none;
+      display: block;
+      width: 120px;
+      text-align: center;
+      margin: 20px auto;
+      padding: 10px 10px;
+      transition: all 0.3s;
+    }
+
+    .go_the_room:hover {
+      box-shadow: 0px -5px 0 #088 inset;
+    }
+  </style>
+  <meta http-equiv="Refresh" content="300">
+</head>
+
+<!-- Интерфейс: имя, окно чата, текст сообщения -->
+
+<body id="body">
+  <center>
+    <table>
+      <tr>
+        <td>
+          <img
+            src="https://github.com/Diteha/CatNet/blob/main/templates/User.png?raw=true" id="profile">
+        </td>
+        <td>
+          <h2 id="h2">Cat.Net</h2>
+        </td>
+      </tr>
+    </table>
+    <p></p>
+    <div id="room">
+      <input id='id_room' type='password' maxlength="18" style="width: 150px;" placeholder='ID комнаты (18 символов)' />
+      <button class="generation" onclick="generate()">Сгенерировать ID</button>
+      <p> </p>
+      <div>
+        <button class="go_the_room" onclick="go_the_room()">Войти в комнату</button>
+      </div>
+    </div>
+
+    <table>
+      <tr>
+        <td>
+          <div id="content_profile">
+            <input id='image_users' type='text' minlength="10" style="width: 120px;"
+              placeholder="Ссылка на изображение" />
+            <input id='id_sender' maxlength="15" style="width: 120px;" placeholder='Ваш ID (<15 символов)' />
+            <p></p>
+            <p></p>
+            <img
+              src="https://github.com/Diteha/CatNet/blob/main/templates/white.png?raw=true"
+              class="img" onclick="theme_white()">
+            <img
+              src="https://github.com/Diteha/CatNet/blob/main/templates/gray.png?raw=true"
+              class="img" onclick="theme_gray()">
+          </div>
+          <div id="chats">
+            <div id='chat_window'></div>
+          </div>
+          <div id="content_message" class="contentmessage">
+            <input id='text' maxlength="100" type='text' placehder='Сообщение'>
+            <b id="emoticon" class="emoticon">(* ^ ω ^) </b>
+            <button class="send" onclick="send_Message()">Отправить</button>
+          </div>
+          <p></p>
+          <div id="emoticn" class="emoticn">
+            <!--<p >Эмоции</p>-->
+            <h3>
+              <button class="smile" onclick="smile1()">(* ^ ω ^)</button>
+              <button class="smile" onclick="smile2()">♡(｡- ω -)</button>
+              <button class="smile" onclick="smile3()">(*/ω＼)</button>
+              <button class="smile" onclick="smile4()">(＃￣ω￣)</button>
+              <button class="smile" onclick="smile5()">( ` ω ´ )</button>
+              <button class="smile" onclick="smile6()">( ╥ω╥ )</button>
+            </h3>
+          </div>
+        </td>
+      </tr>
+
+
+    </table>
+  </center>
+
+</body>
+
+</html>
